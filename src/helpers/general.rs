@@ -1,8 +1,15 @@
-use std::f32::consts::E;
+use std::fs;
+
+use reqwest::Client;
+use serde::de::DeserializeOwned;
 
 use crate::apis::call_request::call_gpt;
 use crate::helpers::command_line::PrintCommand;
 use crate::models::general::llm::Message;
+
+const CODE_TEMPLATE_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/web_template/src/code_template.rs";
+const EXEC_MAIN_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/web_template/src/main.rs";
+const API_SCHEMA_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/auto_gippity/schemas/api_schema.json";
 
 // Extend AI function to encourage specific output
 pub fn extend_ai_funciton(ai_func: fn(&str) -> &'static str, func_input: &str) -> Message {
@@ -51,6 +58,45 @@ pub async fn ai_task_request(
     }
 }
 
+// Performs call to LLM GPT - Decoded
+pub async fn ai_task_request_decoded<T: DeserializeOwned>(
+    msg_context: String,
+    agent_position: &str,
+    agent_operation: &str,
+    function_pass: for<'a> fn(&'a str) -> &'static str,
+) -> T {
+    let llm_response: String =
+        ai_task_request(msg_context, agent_position, agent_operation, function_pass).await;
+
+    let decoded_response: T = serde_json::from_str(llm_response.as_str())
+        .expect("Failed to decode ai response from serde_json");
+
+    return decoded_response;
+}
+
+// Check whether request url is valid
+pub async fn check_status_code(client: &Client, url: &str) -> Result<u16, reqwest::Error> {
+    let response: reqwest::Response = client.get(url).send().await?;
+    Ok(response.status().as_u16())
+}
+
+// Get Code Template
+pub fn read_code_template_contents() -> String {
+    let path: String = String::from(CODE_TEMPLATE_PATH);
+    fs::read_to_string(path).expect("Failed to read code template")
+}
+// Save New Backend Code
+pub fn save_backend_code(contents: &String) {
+    let path: String = String::from(EXEC_MAIN_PATH);
+    fs::write(path, contents).expect("Failed to write main.rs file");
+}
+
+// Save JSON API Endpoint Schema
+pub fn save_api_endpoints(api_endpoints: &String) {
+    let path: String = String::from(API_SCHEMA_PATH);
+    fs::write(path, api_endpoints).expect("Failed to write api_schema.json file");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -61,5 +107,21 @@ mod tests {
         let extended_msg: Message =
             extend_ai_funciton(convert_user_input_to_goal, "dummy variable");
         assert_eq!(extended_msg.role, "system".to_string());
+    }
+
+    #[tokio::test]
+    async fn tests_ai_task_request() {
+        let ai_func_param: String =
+            "Build me a website that is a fully functional snake game".to_string();
+
+        let res: String = ai_task_request(
+            ai_func_param,
+            "Managing Agent",
+            "Defining user requirements",
+            convert_user_input_to_goal,
+        )
+        .await;
+
+        assert!(res.len() > 20);
     }
 }
