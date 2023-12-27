@@ -41,7 +41,7 @@ pub async fn ai_task_request(
     let llm_response_res: Result<String, Box<dyn std::error::Error + Send>> =
         call_gpt(vec![extended_msg.clone()]).await;
 
-    // Handle success or try again
+    // Return success or try again
     match llm_response_res {
         Ok(llm_res) => llm_res,
 
