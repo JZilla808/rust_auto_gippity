@@ -93,7 +93,10 @@ impl SpecialFunctions for AgentSolutionArchitect {
 
                 AgentState::UnitTesting => {
                     let mut exclude_urls: Vec<String> = vec![];
-                    let client = Client::builder().timeout(Duration::from_secs(5)).build()?;
+                    let client: Client = Client::builder()
+                        .timeout(Duration::from_secs(5))
+                        .build()
+                        .unwrap();
 
                     // Defining urls to check
                     let urls: &Vec<String> = factsheet
@@ -116,24 +119,28 @@ impl SpecialFunctions for AgentSolutionArchitect {
                                     exclude_urls.push(url.clone());
                                 }
                             }
-                            Err(e) => {
-                                println!("Error checking {}: {}", url, e);
-                            }
-                        }
-
-                        // Exclude any faulty urls
-                        if exclude_urls.len() > 0 {
-                            let new_urls: Vec<String> = factsheet
-                                .external_urls
-                                .as_ref()
-                                .unwrap()
-                                .iter()
-                                .filter(|url| !exclude_urls.contains(&url))
-                                .cloned()
-                                .collect();
+                            Err(e) => println!("Error checking {}: {}", url, e),
                         }
                     }
+
+                    // Exclude any faulty urls
+                    if exclude_urls.len() > 0 {
+                        let new_urls: Vec<String> = factsheet
+                            .external_urls
+                            .as_ref()
+                            .unwrap()
+                            .iter()
+                            .filter(|url| !exclude_urls.contains(&url))
+                            .cloned()
+                            .collect();
+                        factsheet.external_urls = Some(new_urls);
+                    }
+
+                    // Confirm done
+                    self.attributes.state = AgentState::Finished;
                 }
+
+                // Default to Finished state
                 _ => {
                     self.attributes.state = AgentState::Finished;
                 }
