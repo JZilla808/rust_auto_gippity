@@ -31,7 +31,7 @@ impl AgentSolutionArchitect {
     async fn call_project_scope(&mut self, factsheet: &mut FactSheet) -> ProjectScope {
         let msg_context: String = format!("{}", factsheet.project_description);
 
-        let ai_response = ai_task_request_decoded::<ProjectScope>(
+        let ai_response: ProjectScope = ai_task_request_decoded::<ProjectScope>(
             msg_context,
             &self.attributes.position,
             get_function_string!(print_project_scope),
@@ -61,5 +61,85 @@ impl AgentSolutionArchitect {
 
         factsheet.external_urls = Some(ai_response);
         self.attributes.state = AgentState::UnitTesting;
+    }
+}
+
+#[async_trait]
+impl SpecialFunctions for AgentSolutionArchitect {
+    fn get_attributes_from_agent(&self) -> &BasicAgent {
+        &self.attributes
+    }
+
+    async fn execute(
+        &mut self,
+        factsheet: &mut FactSheet,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // !!! WARNING - BE CAREFUL OF INFINITE LOOPS !!!
+        while self.attributes.state != AgentState::Finished {
+            match self.attributes.state {
+                AgentState::Discovery => {
+                    let project_scope: ProjectScope = self.call_project_scope(factsheet).await;
+
+                    // Confirm if external urls
+                    if project_scope.is_external_urls_required {
+                        self.call_determine_external_urls(
+                            factsheet,
+                            factsheet.project_description.clone(),
+                        )
+                        .await;
+                        self.attributes.state = AgentState::UnitTesting;
+                    }
+                }
+
+                AgentState::UnitTesting => {
+                    let mut exclude_urls: Vec<String> = vec![];
+                    let client = Client::builder().timeout(Duration::from_secs(5)).build()?;
+
+                    // Defining urls to check
+                    let urls: &Vec<String> = factsheet
+                        .external_urls
+                        .as_ref()
+                        .expect("No URL object on factsheet");
+
+                    // Find faulty urls
+                    for url in urls {
+                        let endpoint_str: String = format!("Testing URL Endpoint: {}", url);
+                        PrintCommand::UnitTest.print_agent_message(
+                            self.attributes.position.as_str(),
+                            endpoint_str.as_str(),
+                        );
+
+                        // Perform URL Test
+                        match check_status_code(&client, url).await {
+                            Ok(status_code) => {
+                                if status_code != 200 {
+                                    exclude_urls.push(url.clone());
+                                }
+                            }
+                            Err(e) => {
+                                println!("Error checking {}: {}", url, e);
+                            }
+                        }
+
+                        // Exclude any faulty urls
+                        if exclude_urls.len() > 0 {
+                            let new_urls: Vec<String> = factsheet
+                                .external_urls
+                                .as_ref()
+                                .unwrap()
+                                .iter()
+                                .filter(|url| !exclude_urls.contains(&url))
+                                .cloned()
+                                .collect();
+                        }
+                    }
+                }
+                _ => {
+                    self.attributes.state = AgentState::Finished;
+                }
+            }
+        }
+
+        Ok(())
     }
 }
