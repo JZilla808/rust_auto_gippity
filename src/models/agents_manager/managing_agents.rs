@@ -14,14 +14,39 @@ pub struct ManagingAgent {
 }
 
 impl ManagingAgent {
-    pub async fn new(user_req: String) //-> Result<Self, Box<dyn std::error::Error>>
-    {
+    pub async fn new(user_req: String) -> Result<Self, Box<dyn std::error::Error>> {
+        let position: String = "Project Manager".to_string();
+
         let attributes: BasicAgent = BasicAgent {
             objective: "Manage agents who are building an excellent website for the user"
                 .to_string(),
-            position: "Project Manager".to_string(),
+            position: position.clone(),
             state: AgentState::Discovery,
             memory: vec![],
         };
+
+        let project_description: String = ai_task_request(
+            user_req,
+            &position,
+            get_function_string!(convert_user_input_to_goal),
+            convert_user_input_to_goal,
+        )
+        .await;
+
+        let agents: Vec<Box<dyn SpecialFunctions>> = vec![];
+
+        let factsheet: FactSheet = FactSheet {
+            project_description,
+            project_scope: None,
+            external_urls: None,
+            backend_code: None,
+            api_endpoint_shcema: None,
+        };
+
+        Ok(Self {
+            attributes,
+            factsheet,
+            agents,
+        })
     }
 }
