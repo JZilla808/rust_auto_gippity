@@ -167,15 +167,13 @@ mod tests {
 
         let factsheet_str: &str = r#"
       {
-        "project_description": "build a website that fetches and tracks fitness progress with timezone information",
+        "project_description": "build a website that only tracks and returns the time of day",
         "project_scope": {
-          "is_crud_required": true,
-          "is_user_login_and_logout": true,
-          "is_external_urls_required": true
+          "is_crud_required": false,
+          "is_user_login_and_logout": false,
+          "is_external_urls_required": false
         },
-        "external_urls": [
-          "http://worldtimeapi.org/api/timezone"
-        ],
+        "external_urls": [],
         "backend_code": null,
         "api_endpoint_schema": null
       }"#;
