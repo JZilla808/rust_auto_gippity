@@ -4,10 +4,10 @@ use crate::ai_functions::aifunc_backend::{
 };
 use crate::helpers::general::{
     check_status_code, read_code_template_contents, read_exec_main_contents, save_api_endpoints,
-    save_backend_code, WEB_SERVER_PROJECT_PATH,
+    save_backend_code,
 };
 
-use crate::helpers::command_line::{confirm_safe_code, PrintCommand};
+use crate::helpers::command_line::PrintCommand;
 use crate::helpers::general::ai_task_request;
 use crate::models::agent_basic::basic_agent::{AgentState, BasicAgent};
 use crate::models::agents::agent_traits::{FactSheet, RouteObject, SpecialFunctions};
@@ -154,5 +154,37 @@ impl SpecialFunctions for AgentBackendDeveloper {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn tests_writing_backend_code() {
+        let mut agent = AgentBackendDeveloper::new();
+
+        let factsheet_str: &str = r#"
+      {
+        "project_description": "build a website that fetches and tracks fitness progress with timezone information",
+        "project_scope": {
+          "is_crud_required": true,
+          "is_user_login_and_logout": true,
+          "is_external_urls_required": true
+        },
+        "external_urls": [
+          "http://worldtimeapi.org/api/timezone"
+        ],
+        "backend_code": null,
+        "api_endpoint_schema": null
+      }"#;
+
+        let mut factsheet: FactSheet = serde_json::from_str(factsheet_str).unwrap();
+
+        agent
+            .execute(&mut factsheet)
+            .await
+            .expect("Failed to execute Backend Developer Agent");
     }
 }

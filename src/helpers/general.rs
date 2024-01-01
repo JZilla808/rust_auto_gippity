@@ -39,7 +39,7 @@ pub async fn ai_task_request(
     function_pass: for<'a> fn(&'a str) -> &'static str,
 ) -> String {
     // Extend AI function
-    let extended_msg = extend_ai_funciton(function_pass, &msg_context);
+    let extended_msg: Message = extend_ai_funciton(function_pass, &msg_context);
 
     // Print current status
     PrintCommand::AICall.print_agent_message(agent_position, agent_operation);
