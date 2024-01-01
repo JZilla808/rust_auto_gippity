@@ -12,7 +12,7 @@ const EXEC_MAIN_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/
 const API_SCHEMA_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/auto_gippity/schemas/api_schema.json";
 
 // Extend AI function to encourage specific output
-pub fn extend_ai_funciton(ai_func: fn(&str) -> &'static str, func_input: &str) -> Message {
+pub fn extend_ai_function(ai_func: fn(&str) -> &'static str, func_input: &str) -> Message {
     let ai_function_str = ai_func(func_input);
 
     // Extend the string to encourage only printing the output
@@ -39,22 +39,35 @@ pub async fn ai_task_request(
     function_pass: for<'a> fn(&'a str) -> &'static str,
 ) -> String {
     // Extend AI function
-    let extended_msg: Message = extend_ai_funciton(function_pass, &msg_context);
+    let extended_msg: Message = extend_ai_function(function_pass, &msg_context);
 
     // Print current status
     PrintCommand::AICall.print_agent_message(agent_position, agent_operation);
 
     // Get LLM response
-    let llm_response_res: Result<String, Box<dyn std::error::Error + Send>> =
+    println!("Attempting first call to OpenAI...");
+    let mut llm_response_res: Result<String, Box<dyn std::error::Error + Send>> =
         call_gpt(vec![extended_msg.clone()]).await;
 
-    // Return success or try again
-    match llm_response_res {
-        Ok(llm_res) => llm_res,
+    // Try again if the call fails
+    if llm_response_res.is_err() {
+        println!("First attempt failed, trying second call to OpenAI...");
+        llm_response_res = call_gpt(vec![extended_msg.clone()]).await;
+    }
 
-        Err(_) => call_gpt(vec![extended_msg.clone()])
-            .await
-            .expect("Failed twice to call OpenAI"),
+    // Try again if the second call fails
+    if llm_response_res.is_err() {
+        println!("Second attempt failed, trying third call to OpenAI...");
+        llm_response_res = call_gpt(vec![extended_msg.clone()]).await;
+    }
+
+    // Return success or panic after three failed attempts
+    match llm_response_res {
+        Ok(llm_res) => {
+            println!("Call to OpenAI successful.");
+            llm_res
+        }
+        Err(_) => panic!("Failed three times to call OpenAI"),
     }
 }
 
@@ -112,7 +125,7 @@ mod tests {
     #[test]
     fn tests_extending_ai_function() {
         let extended_msg: Message =
-            extend_ai_funciton(convert_user_input_to_goal, "dummy variable");
+            extend_ai_function(convert_user_input_to_goal, "dummy variable");
         assert_eq!(extended_msg.role, "system".to_string());
     }
 
