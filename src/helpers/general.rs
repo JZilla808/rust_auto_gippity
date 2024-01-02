@@ -8,7 +8,11 @@ use crate::helpers::command_line::PrintCommand;
 use crate::models::general::llm::Message;
 
 const CODE_TEMPLATE_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/web_template/src/code_template.rs";
-const EXEC_MAIN_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/web_template/src/main.rs";
+
+pub const WEB_SERVER_PROJECT_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/web_template/";
+
+pub const EXEC_MAIN_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/web_template/src/main.rs";
+
 const API_SCHEMA_PATH: &str = "/Users/jbeazy/Documents/Work/Coding/Udemy Courses/Rust - AutoGPT Course/projects/auto_gippity/schemas/api_schema.json";
 
 // Extend AI function to encourage specific output

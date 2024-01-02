@@ -4,7 +4,7 @@ use crate::ai_functions::aifunc_backend::{
 };
 use crate::helpers::general::{
     check_status_code, read_code_template_contents, read_exec_main_contents, save_api_endpoints,
-    save_backend_code,
+    save_backend_code, WEB_SERVER_PROJECT_PATH,
 };
 
 use crate::helpers::command_line::{confirm_safe_code, PrintCommand};
@@ -159,7 +159,49 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         panic!("Program terminated due to user unapproved code");
                     }
 
-                    self.attributes.state = AgentState::Finished;
+                    // Build and Test Code
+                    PrintCommand::UnitTest.print_agent_message(
+                        self.attributes.position.as_str(),
+                        "Backend Code Unit Testing: building project...",
+                    );
+
+                    // Build Code
+                    let build_backend_server: std::process::Output = Command::new("cargo")
+                        .arg("build")
+                        .current_dir(WEB_SERVER_PROJECT_PATH)
+                        .stdout(Stdio::piped())
+                        .stderr(Stdio::piped())
+                        .output()
+                        .expect("Failed to run backend application");
+
+                    // Determine if build errors
+                    if build_backend_server.status.success() {
+                        self.bug_count = 0;
+                        PrintCommand::UnitTest.print_agent_message(
+                            self.attributes.position.as_str(),
+                            "Backend Code Unit Testing: Test server build successful...",
+                        );
+                    } else {
+                        let error_arr: Vec<u8> = build_backend_server.stderr;
+                        let error_str: String = String::from_utf8(error_arr).unwrap();
+
+                        // Update error stats
+                        self.bug_count += 1;
+                        self.bug_errors = Some(error_str);
+
+                        // Exit if too many bugs
+                        if self.bug_count > 3 {
+                            PrintCommand::Issue.print_agent_message(
+                                self.attributes.position.as_str(),
+                                "Backend Code Unit Testing: Too many bugs, exiting...",
+                            );
+                            panic!("Error: Too many bugs, exiting...");
+                        };
+                    }
+
+                    // Pass back for rework
+                    self.attributes.state = AgentState::Working;
+                    continue;
                 }
                 _ => {}
             }
