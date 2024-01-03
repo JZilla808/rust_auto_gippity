@@ -164,7 +164,7 @@ mod tests {
             project_scope: None,
             external_urls: None,
             backend_code: None,
-            api_endpoint_shcema: None,
+            api_endpoint_schema: None,
         };
 
         agent

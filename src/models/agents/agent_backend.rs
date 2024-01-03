@@ -58,7 +58,6 @@ impl AgentBackendDeveloper {
         )
         .await;
 
-        // Save Backend Code
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
     }
@@ -77,7 +76,6 @@ impl AgentBackendDeveloper {
         )
         .await;
 
-        // Save Backend Code
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
     }
@@ -85,7 +83,7 @@ impl AgentBackendDeveloper {
     async fn call_fix_code_bugs(&mut self, factsheet: &mut FactSheet) {
         let msg_context: String = format!(
             "BROKEN_CODE: {:?} \n ERROR_BUGS: {:?} \n
-            THIS FUNCTION ONLY OUTPUTS CODE. JUST OUTPUT THE CODE",
+      THIS FUNCTION ONLY OUTPUTS CODE. JUST OUTPUT THE CODE.",
             factsheet.backend_code, self.bug_errors
         );
 
@@ -97,7 +95,6 @@ impl AgentBackendDeveloper {
         )
         .await;
 
-        // Save Backend Code
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
     }
@@ -137,6 +134,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     self.attributes.state = AgentState::Working;
                     continue;
                 }
+
                 AgentState::Working => {
                     if self.bug_count == 0 {
                         self.call_improved_backend_code(factsheet).await;
@@ -146,6 +144,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     self.attributes.state = AgentState::UnitTesting;
                     continue;
                 }
+
                 AgentState::UnitTesting => {
                     // Guard:: ENSURE AI SAFETY
                     PrintCommand::UnitTest.print_agent_message(
@@ -156,7 +155,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     let is_safe_code: bool = confirm_safe_code();
 
                     if !is_safe_code {
-                        panic!("Program terminated due to user unapproved code");
+                        panic!("Better go work on some AI alignment instead...")
                     }
 
                     // Build and Test Code
@@ -190,13 +189,13 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         self.bug_errors = Some(error_str);
 
                         // Exit if too many bugs
-                        if self.bug_count > 3 {
+                        if self.bug_count > 2 {
                             PrintCommand::Issue.print_agent_message(
                                 self.attributes.position.as_str(),
-                                "Backend Code Unit Testing: Too many bugs, exiting...",
+                                "Backend Code Unit Testing: Too many bugs found in code",
                             );
-                            panic!("Error: Too many bugs, exiting...");
-                        };
+                            panic!("Error: Too many bugs")
+                        }
 
                         // Pass back for rework
                         self.attributes.state = AgentState::Working;
@@ -204,11 +203,11 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     }
 
                     /*
-                       Extract and Test
-                       Rest API Endpoints
+                      Extract and Test
+                      Rest API Endpoints
                     */
 
-                    // Extract Rest API
+                    // Extract API Endpoints
                     let api_endpoints_str: String = self.call_extract_rest_api_endpoints().await;
 
                     // Convert API Endpoints into Values
@@ -226,7 +225,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         .collect();
 
                     // Store API Endpoints
-                    factsheet.api_endpoint_shcema = Some(check_endpoints.clone());
+                    factsheet.api_endpoint_schema = Some(check_endpoints.clone());
 
                     // Run backend application
                     PrintCommand::UnitTest.print_agent_message(
@@ -249,13 +248,18 @@ impl SpecialFunctions for AgentBackendDeveloper {
                         "Backend Code Unit Testing: Launching tests on server in 5 seconds...",
                     );
 
-                    // Count down from 5
-                    for i in (1..=5).rev() {
-                        println!("{}...", i);
-                        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-                    }
+                    let seconds_sleep: Duration = Duration::from_secs(5);
+                    time::sleep(seconds_sleep).await;
 
-                    // Check Status Code
+                    // Let user know how many endpoints will be checked
+                    let endpoints_count_msg: String =
+                        format!("Number of endpoints to check: {}", check_endpoints.len());
+                    PrintCommand::UnitTest.print_agent_message(
+                        self.attributes.position.as_str(),
+                        endpoints_count_msg.as_str(),
+                    );
+
+                    // Check status code
                     for endpoint in check_endpoints {
                         // Confirm url testing
                         let testing_msg: String =
@@ -265,7 +269,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                             testing_msg.as_str(),
                         );
 
-                        // Create client with timeout
+                        // Create client with timout
                         let client: Client = Client::builder()
                             .timeout(Duration::from_secs(5))
                             .build()
@@ -290,8 +294,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                                 // kill $(lsof -t -i:8080)
                                 run_backend_server
                                     .kill()
-                                    .expect("Failed to kill backend server");
-
+                                    .expect("Failed to kill backend web server");
                                 let err_msg: String = format!("Error checking backend {}", e);
                                 PrintCommand::Issue.print_agent_message(
                                     self.attributes.position.as_str(),
@@ -302,6 +305,7 @@ impl SpecialFunctions for AgentBackendDeveloper {
                     }
 
                     save_api_endpoints(&api_endpoints_str);
+
                     PrintCommand::UnitTest.print_agent_message(
                         self.attributes.position.as_str(),
                         "Backend testing complete...",
@@ -309,14 +313,14 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                     run_backend_server
                         .kill()
-                        .expect("Failed to kill backend server on completion");
+                        .expect("Failed to kill backend web server on completion");
 
                     self.attributes.state = AgentState::Finished;
                 }
+
                 _ => {}
             }
         }
-
         Ok(())
     }
 }
@@ -326,8 +330,8 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn tests_writing_backend_code() {
-        let mut agent = AgentBackendDeveloper::new();
+    async fn tests_backend_developer() {
+        let mut agent: AgentBackendDeveloper = AgentBackendDeveloper::new();
 
         let factsheet_str: &str = r#"
       {
@@ -349,6 +353,6 @@ mod tests {
         agent
             .execute(&mut factsheet)
             .await
-            .expect("Failed to execute Backend Developer Agent");
+            .expect("Failed to execute Backend Developer agent");
     }
 }
