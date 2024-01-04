@@ -58,6 +58,10 @@ impl AgentBackendDeveloper {
         )
         .await;
 
+        // Remove unwanted comments in ai_response
+        ai_response = ai_response.replace("```rust", "");
+        ai_response = ai_response.replace("```", "");
+
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
     }
@@ -91,13 +95,17 @@ impl AgentBackendDeveloper {
             factsheet.backend_code, self.bug_errors
         );
 
-        let ai_response: String = ai_task_request(
+        let mut ai_response: String = ai_task_request(
             msg_context,
             &self.attributes.position,
             get_function_string!(print_fixed_code),
             print_fixed_code,
         )
         .await;
+
+        // Remove unwanted comments in ai_response
+        ai_response = ai_response.replace("```rust", "");
+        ai_response = ai_response.replace("```", "");
 
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
@@ -367,6 +375,9 @@ mod tests {
 
         // Convert to FactSheet
         let mut factsheet: FactSheet = serde_json::from_str(factsheet_str).unwrap();
+
+        // Set agent state to discovery
+        agent.attributes.state = AgentState::Discovery;
 
         agent
             .execute(&mut factsheet)
