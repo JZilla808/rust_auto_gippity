@@ -1,19 +1,12 @@
-This repository showcases a cutting-edge Rust command line application, masterfully crafted to perform asynchronous HTTP requests utilizing advanced APIs like reqwest and tokio. At its core, the application intelligently interfaces with an AI model, hosted remotely, harnessing the power of the ai_functions crate for sophisticated, intelligent features.
+This GitHub repository showcases an innovative AI-powered Rust command line application, intricately designed to generate code for websites based on user input. A standout feature of this project is its integration with OpenAI's cutting-edge GPT-4 Turbo API, elevating its intelligent functionality.
 
 Key Highlights of the Project:
 
-Asynchronous Programming Mastery: The application is built on Tokio's clean asynchronous architecture, exemplifying proficiency in Rust's async/await paradigm.
-
-API Integration Expertise: It adeptly handles outbound HTTP requests, demonstrating a strong grasp of network communication in Rust.
-
-Advanced Data Handling: Utilization of Serde for JSON serialization/deserialization showcases deep understanding of data processing and serialization techniques.
-
-CLI Development Skills: The application features a user-friendly CLI interface, designed using the Crossterm crate, highlighting the ability to develop intuitive command line applications.
-
-AI Integration Know-How: It leverages an AI model via the ai_functions crate, reflecting innovative skills in embedding AI functionalities within Rust applications.
-
-Rust Best Practices: The project adheres to idiomatic Rust style and conventions, as evident in the code samples, indicating a thorough understanding of Rust's best practices.
-
-Efficient Configuration Management: Automated configuration through environment variables with Dotenv reveals experience in robust application configuration management.
-
-This project is a testament to a wide range of skills in asynchronous Rust development, API integration, CLI construction, AI functionality implementation, data serialization, and adherence to Rust coding standards. It is an ideal portfolio piece for those aspiring to positions in back-end Rust development, particularly in roles focusing on building sophisticated, network-oriented applications.
+Advanced asynchronous architecture employing Rust's Tokio, demonstrating proficiency in async/await paradigms.
+Integration with external services via outbound HTTP requests, highlighting adeptness in network communication in Rust.
+Utilization of Serde for efficient JSON serialization/deserialization, showcasing skills in data processing.
+Creation of a user-friendly CLI interface using the Crossterm crate, reflecting competence in CLI application development.
+Incorporation of AI capabilities through the ai_functions crate, signifying expertise in embedding AI technologies in Rust applications.
+Adherence to Rust's idiomatic style and conventions, indicating a deep understanding of Rust's best practices.
+Automated environment configuration with Dotenv, illustrating experience in application configuration management.
+This project encapsulates a comprehensive skill set in asynchronous Rust development, API and AI integration, CLI development, data serialization, and adherence to Rust coding standards. It is particularly suited for employers seeking backend Rust developers capable of crafting robust, network-driven applications with a modern AI twist.
