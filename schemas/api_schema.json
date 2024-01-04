@@ -1,0 +1,50 @@
+
+[
+  {
+    "route": "/progress",
+    "is_route_dynamic": "false",
+    "method": "post",
+    "request_body": {
+      "id": "number",
+      "user_id": "number",
+      "timestamp": "number",
+      "timezone": "string",
+      "data": "object"
+    },
+    "response": "None"
+  },
+  {
+    "route": "/progress/{user_id}",
+    "is_route_dynamic": "true",
+    "method": "get",
+    "request_body": "None",
+    "response": {
+      "id": "number",
+      "user_id": "number",
+      "timestamp": "number",
+      "timezone": "string",
+      "data": "object"
+    }
+  },
+  {
+    "route": "/register",
+    "is_route_dynamic": "false",
+    "method": "post",
+    "request_body": {
+      "id": "number",
+      "username": "string",
+      "password": "string"
+    },
+    "response": "None"
+  },
+  {
+    "route": "/login",
+    "is_route_dynamic": "false",
+    "method": "post",
+    "request_body": {
+      "username": "string",
+      "password": "string"
+    },
+    "response": "string"
+  }
+]

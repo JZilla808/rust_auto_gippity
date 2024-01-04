@@ -106,16 +106,26 @@ impl AgentBackendDeveloper {
     async fn call_extract_rest_api_endpoints(&self) -> String {
         let backend_code: String = read_exec_main_contents();
 
+        // Debug output
+        // println!("Backend Code: {}", backend_code);
+
         // Structure message context
         let msg_context: String = format!("CODE_INPUT: {}", backend_code);
 
-        let ai_response: String = ai_task_request(
+        let mut ai_response: String = ai_task_request(
             msg_context,
             &self.attributes.position,
             get_function_string!(print_rest_api_endpoints),
             print_rest_api_endpoints,
         )
         .await;
+
+        // Debug output
+        // println!("AI Response: {}", ai_response);
+
+        // Remove unwanted comments in ai_response
+        ai_response = ai_response.replace("```json", "");
+        ai_response = ai_response.replace("```", "");
 
         ai_response
     }
@@ -213,6 +223,9 @@ impl SpecialFunctions for AgentBackendDeveloper {
 
                     // Extract API Endpoints
                     let api_endpoints_str: String = self.call_extract_rest_api_endpoints().await;
+
+                    // Debug output
+                    println!("API Endpoints String: {}", api_endpoints_str);
 
                     // Convert API Endpoints into Values
                     let api_endpoints: Vec<RouteObject> =
