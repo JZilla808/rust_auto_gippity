@@ -50,7 +50,7 @@ impl AgentBackendDeveloper {
             code_template_str, factsheet.project_description
         );
 
-        let ai_response: String = ai_task_request(
+        let mut ai_response: String = ai_task_request(
             msg_context,
             &self.attributes.position,
             get_function_string!(print_backend_webserver_code),
@@ -68,13 +68,17 @@ impl AgentBackendDeveloper {
             factsheet.backend_code, factsheet
         );
 
-        let ai_response: String = ai_task_request(
+        let mut ai_response: String = ai_task_request(
             msg_context,
             &self.attributes.position,
             get_function_string!(print_improved_webserver_code),
             print_improved_webserver_code,
         )
         .await;
+
+        // Remove unwanted comments in ai_response
+        ai_response = ai_response.replace("```rust", "");
+        ai_response = ai_response.replace("```", "");
 
         save_backend_code(&ai_response);
         factsheet.backend_code = Some(ai_response);
