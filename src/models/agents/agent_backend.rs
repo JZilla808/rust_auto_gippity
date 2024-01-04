@@ -348,7 +348,7 @@ mod tests {
         "api_endpoint_schema": null
       }"#;
 
-      // Convert to FactSheet
+        // Convert to FactSheet
         let mut factsheet: FactSheet = serde_json::from_str(factsheet_str).unwrap();
 
         agent
